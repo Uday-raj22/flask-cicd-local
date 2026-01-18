@@ -1,7 +1,15 @@
-FROM python:3
-RUN pip install --upgrade pip
-WORKDIR /docker
+FROM python:3.10-slim
+
+RUN pip install --no-cache-dir --upgrade pip
+
+WORKDIR /app
+
 COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
 COPY . .
-CMD ["python3", "web.py"]
+
+EXPOSE 5000
+
+CMD ["python", "web.py"]
+
