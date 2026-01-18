@@ -1,6 +1,7 @@
 ---
 - name: Provision FlaskApp
-  hosts: servers
+  hosts: local
+  become: yes
   tasks:
 
     - name: Install pip3

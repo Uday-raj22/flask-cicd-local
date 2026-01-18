@@ -10,22 +10,36 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Image (Minikube)') {
             steps {
-                sh 'docker build -t flaskapp:latest docker/'
+                sh '''
+                  echo "Switching Docker context to Minikube"
+                  eval $(minikube docker-env)
+
+                  echo "Building Flask Docker image inside Minikube"
+                  docker build -t flaskapp:latest docker/
+                '''
             }
         }
 
-        stage('Deploy Using Ansible') {
+        stage('Deploy to Kubernetes') {
             steps {
-                sh 'ansible-playbook ansible/provision_flaskapp.yml'
+                sh '''
+                  echo "Deploying Flask app to Kubernetes"
+                  kubectl apply -f flaskapp_deployment.yaml
+                '''
             }
         }
 
         stage('Verify Deployment') {
             steps {
-                sh 'kubectl get pods'
-                sh 'kubectl get svc'
+                sh '''
+                  echo "Checking Pods"
+                  kubectl get pods
+
+                  echo "Checking Services"
+                  kubectl get svc
+                '''
             }
         }
     }
