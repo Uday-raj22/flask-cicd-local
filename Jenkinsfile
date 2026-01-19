@@ -13,10 +13,11 @@ pipeline {
         stage('Build Docker Image (Minikube)') {
             steps {
                 sh '''
-                  echo "Switching Docker context to Minikube"
-                  eval $(minikube docker-env)
+                  echo "Configuring Minikube Docker environment"
 
-                  echo "Building Flask Docker image inside Minikube"
+                  eval $(minikube -p minikube docker-env --shell bash)
+
+                  echo "Building Docker image inside Minikube"
                   docker build -t flaskapp:latest docker/
                 '''
             }
@@ -25,7 +26,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                  echo "Deploying Flask app to Kubernetes"
+                  echo "Deploying application to Kubernetes"
                   kubectl apply -f flaskapp_deployment.yaml
                 '''
             }
@@ -34,10 +35,10 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
-                  echo "Checking Pods"
+                  echo "Pods status:"
                   kubectl get pods
 
-                  echo "Checking Services"
+                  echo "Services status:"
                   kubectl get svc
                 '''
             }
