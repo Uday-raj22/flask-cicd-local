@@ -5,16 +5,15 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/Uday-raj22/flask-cicd-local.git'
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 sh '''
-                    cd docker
-                    docker build -t flaskapp:latest .
+                cd docker
+                docker build -t flaskapp:latest .
                 '''
             }
         }
@@ -22,8 +21,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                    cd ..
-                    kubectl apply -f k8s/*.yaml
+                kubectl apply -f flaskapp_deployment.yaml
                 '''
             }
         }
@@ -31,8 +29,8 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
-                    kubectl get pods
-                    kubectl get svc
+                kubectl get pods
+                kubectl get svc
                 '''
             }
         }
