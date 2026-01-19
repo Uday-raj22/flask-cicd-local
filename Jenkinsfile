@@ -13,6 +13,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
+                    cd docker
                     docker build -t flaskapp:latest .
                 '''
             }
