@@ -1,24 +1,19 @@
 pipeline {
-
     agent any
 
     stages {
 
-        stage('Checkout Source') {
+        stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'main',
+                    url: 'https://github.com/Uday-raj22/flask-cicd-local.git'
             }
         }
 
-        stage('Build Docker Image (Minikube)') {
+        stage('Build Docker Image') {
             steps {
                 sh '''
-                  echo "Configuring Minikube Docker environment"
-
-                  eval $(minikube -p minikube docker-env --shell bash)
-
-                  echo "Building Docker image inside Minikube"
-                  docker build -t flaskapp:latest docker/
+                    docker build -t flaskapp:latest .
                 '''
             }
         }
@@ -26,8 +21,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                  echo "Deploying application to Kubernetes"
-                  kubectl apply -f flaskapp_deployment.yaml
+                    kubectl apply -f k8s/
                 '''
             }
         }
@@ -35,11 +29,8 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
-                  echo "Pods status:"
-                  kubectl get pods
-
-                  echo "Services status:"
-                  kubectl get svc
+                    kubectl get pods
+                    kubectl get svc
                 '''
             }
         }
