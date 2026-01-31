@@ -1,159 +1,252 @@
-FLASK DEVOPS PROJECT
-Ansible | Jenkins | Docker | Kubernetes (Minikube)
+PROJECT: Flask Application CI/CD using Ansible, Docker, Kubernetes & Jenkins
+AUTHOR: Team Project
+PLATFORM: Ubuntu / Linux
+
+---
 
 PROJECT OVERVIEW
-This project demonstrates a complete DevOps pipeline for deploying a Flask web application using:
-- Ansible for provisioning
-- Docker for containerization
-- Jenkins for CI/CD
-- Kubernetes (Minikube) for orchestration
-The project runs fully on a local machine.
 
---------------------------------------------------
+This project demonstrates a complete DevOps workflow:
 
-PROJECT STRUCTURE
+1. Ansible provisions the system (Docker, Jenkins, Kubernetes tools)
+2. Docker containerizes a Flask application
+3. Kubernetes (Minikube) runs the container
+4. Jenkins automates the CI/CD pipeline
+5. Flask app is accessed via browser
+
+---
+
+SYSTEM REQUIREMENTS
+
+Operating System:
+
+* Ubuntu 20.04 / 22.04 / 24.04
+
+Minimum Requirements:
+
+* 8 GB RAM
+* Virtualization enabled
+* Internet access
+
+---
+
+PROJECT DIRECTORY STRUCTURE
+
+Run this command to verify structure:
+
+tree -L 2
+
+Expected structure:
+
 .
-├── ansible/
+├── ansible
 │   ├── provision_flaskapp.yml
 │   └── provision_jenkins.yaml
-├── docker/
+├── docker
 │   ├── Dockerfile
+│   ├── requirements.txt
 │   ├── web.py
 │   ├── lorenz.py
-│   ├── requirements.txt
-│   ├── templates/
-│   └── static/
+│   ├── templates
+│   └── static
 ├── flaskapp_deployment.yaml
 ├── flaskapp_service.yaml
 ├── Jenkinsfile
-└── README.txt
+├── README.md
 
---------------------------------------------------
+---
 
-PREREQUISITES
-- Linux (Ubuntu recommended)
-- Git
-- Python 3
-- Internet connection
+STEP 1: INSTALL ANSIBLE
 
-Install basics:
+Run the following commands:
+
 sudo apt update
-sudo apt install -y git curl python3 python3-pip
-
---------------------------------------------------
-
-STEP 1: CLONE REPOSITORY
-git clone https://github.com/Uday-raj22/flask-cicd-local.git
-cd flask-cicd-local
-
---------------------------------------------------
-
-STEP 2: INSTALL ANSIBLE
 sudo apt install -y ansible
 ansible --version
 
---------------------------------------------------
+---
 
-STEP 3: PROVISION SYSTEM USING ANSIBLE
-Installs Docker, Jenkins, Kubectl, Minikube
+STEP 2: PROVISION SYSTEM USING ANSIBLE
 
-Run Jenkins setup:
+This installs:
+
+* Docker
+* Jenkins
+* kubectl
+* Minikube
+
+Run Jenkins provisioning:
+
 ansible-playbook ansible/provision_jenkins.yaml
 
-Run Docker + Kubernetes setup:
+Run Docker & Kubernetes provisioning:
+
 ansible-playbook ansible/provision_flaskapp.yml
 
---------------------------------------------------
+---
+
+STEP 3: START AND VERIFY JENKINS
+
+Start Jenkins:
+
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+
+Get Jenkins admin password:
+
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+Open Jenkins in browser:
+
+[http://localhost:8080](http://localhost:8080)
+
+---
 
 STEP 4: START MINIKUBE
+
+Start Minikube using Docker driver:
+
 minikube start --driver=docker
+
+Verify cluster:
+
 kubectl get nodes
 
---------------------------------------------------
+---
 
-STEP 5: CONFIGURE DOCKER FOR MINIKUBE
-IMPORTANT:
+STEP 5: CONFIGURE DOCKER TO USE MINIKUBE
+
+This step is mandatory:
+
 eval $(minikube docker-env)
+
+Verify Docker is pointing to Minikube:
+
 docker info | grep minikube
 
---------------------------------------------------
+---
 
 STEP 6: BUILD DOCKER IMAGE
-cd docker
-docker build -t flaskapp:latest .
-cd ..
 
-Verify:
+Go to docker directory:
+
+cd docker
+
+Build the Flask image:
+
+docker build -t flaskapp:latest .
+
+Verify image:
+
 docker images | grep flaskapp
 
---------------------------------------------------
+---
 
-STEP 7: DEPLOY TO KUBERNETES
+STEP 7: DEPLOY APPLICATION TO KUBERNETES
+
+Go back to project root:
+
+cd ..
+
+Apply deployment:
+
 kubectl apply -f flaskapp_deployment.yaml
+
+Apply service:
+
 kubectl apply -f flaskapp_service.yaml
 
-Check:
+Check pod status:
+
 kubectl get pods
 
---------------------------------------------------
+Check service:
 
-STEP 8: ACCESS APPLICATION
+kubectl get svc
+
+---
+
+STEP 8: ACCESS FLASK APPLICATION
+
+Expose service:
+
 minikube service flaskapp-service
 
 OR manually:
-kubectl get svc
+
 minikube ip
+kubectl get svc flaskapp-service
 
 Open in browser:
-http://<minikube-ip>:<node-port>
 
---------------------------------------------------
+http://<MINIKUBE-IP>:<NODE-PORT>
 
-APPLICATION ROUTES
-/        -> Home page
-/lorenz  -> Lorenz visualization
+---
 
---------------------------------------------------
+FLASK APPLICATION ROUTES
 
-STEP 9: JENKINS PIPELINE (OPTIONAL)
-Open Jenkins:
-http://localhost:8080
+/           → Home Page
+/lorenz     → Lorenz System Visualization
 
-Create Pipeline job and link GitHub repository.
-Pipeline automatically builds and deploys app.
+---
 
---------------------------------------------------
+STEP 9: JENKINS CI/CD PIPELINE SETUP
 
-TROUBLESHOOTING
-View pod logs:
+1. Open Jenkins UI
+2. Click "New Item"
+3. Select "Pipeline"
+4. Choose "Pipeline from SCM"
+5. Select Git
+6. Enter GitHub repository URL
+7. Branch: main
+8. Jenkinsfile path: Jenkinsfile
+9. Save
+
+Run pipeline using "Build Now"
+
+---
+
+JENKINS PIPELINE STAGES
+
+1. Git Checkout
+2. Docker Build
+3. Kubernetes Deployment
+4. Verification
+
+Green pipeline indicates success.
+
+---
+
+COMMON TROUBLESHOOTING COMMANDS
+
+Check pod logs:
+
 kubectl logs <pod-name>
 
-If image pull fails:
-eval $(minikube docker-env)
-docker build -t flaskapp:latest .
+Restart deployment:
 
---------------------------------------------------
+kubectl rollout restart deployment flaskapp
 
-SCREENSHOTS REQUIRED
-- Ansible execution
-- Jenkins pipeline success
-- Docker image build
-- kubectl get pods
-- kubectl get svc
-- Browser output
+Delete all Kubernetes resources:
 
---------------------------------------------------
+kubectl delete deployment flaskapp
+kubectl delete service flaskapp-service
 
-TEAM RESPONSIBILITIES
-Member 1: Ansible
-Member 2: Docker & Flask
-Member 3: Kubernetes
-Member 4: Jenkins CI/CD
+Clean Docker:
 
---------------------------------------------------
+docker system prune -af
 
-IMPORTANT NOTE
-Always run:
-eval $(minikube docker-env)
-before building Docker images.
+Reset Minikube:
+
+minikube delete
+
+---
+
+TEAM RESPONSIBILITY DISTRIBUTION
+
+Member 1: Ansible provisioning
+Member 2: Flask application development
+Member 3: Docker & Kubernetes deployment
+Member 4: Jenkins CI/CD pipeline
+
 
